@@ -1,0 +1,76 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "用户API",
+    "version": ""
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/users/login": {
+      "post": {
+        "summary": "用户-登录",
+        "operationId": "UserLogin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/UserLoginResp"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserLoginReq"
+            }
+          }
+        ],
+        "tags": [
+          "auth"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "UserLoginReq": {
+      "type": "object",
+      "properties": {
+        "userName": {
+          "type": "string"
+        },
+        "passWord": {
+          "type": "string"
+        }
+      },
+      "title": "UserLoginReq",
+      "required": [
+        "userName",
+        "passWord"
+      ]
+    },
+    "UserLoginResp": {
+      "type": "object",
+      "title": "UserLoginResp"
+    }
+  },
+  "securityDefinitions": {
+    "apiKey": {
+      "type": "apiKey",
+      "description": "Enter JWT Bearer token **_only_**",
+      "name": "Authorization",
+      "in": "header"
+    }
+  }
+}

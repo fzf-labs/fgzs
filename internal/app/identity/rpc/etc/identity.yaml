@@ -1,0 +1,46 @@
+Name: identity.rpc
+ListenOn: 127.0.0.1:31002
+Mode: dev
+
+#监控
+Prometheus:
+  Host: 0.0.0.0
+  Port: 31502
+  Path: /metrics
+
+#性能监控
+Pyroscope:
+  ApplicationName: identity.rpc
+  Addr: http://pyroscope:4040
+  AuthToken:
+
+#链路追踪
+Telemetry:
+  Name: identity.rpc
+  Endpoint: http://jaeger:14268/api/traces
+  Sampler: 1.0
+  Batcher: jaeger
+
+#日志
+Log:
+  ServiceName: identity.rpc
+  Level: info
+
+#Redis
+Redis:
+  Host: 127.0.0.1:6379
+  Pass: "123456"
+
+#jwt
+Jwt:
+  App:
+    AccessSecret: "qXW4dIAOaOzDYg3RNbEaezuDGmQgmV5wZprWgFenNpaEZpya4Hs3mUx7WQUzLB7S"
+    AccessExpire: 604800
+    RefreshAfter: 86400
+    Issuer: "App"
+
+  Admin:
+    AccessSecret: "qXW4dIAOaOzDYg3RNbEaezuDGmQgmV5wZprWgFenNpaEZpya4Hs3mUx7WQUzLB7S"
+    AccessExpire: 604800
+    RefreshAfter: 86400
+    Issuer: "Admin"

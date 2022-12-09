@@ -1,0 +1,107 @@
+syntax = "proto3";
+
+package commonpb;
+
+option go_package = "./commonpb";
+
+message CaptchaGenerateReq {
+}
+
+message CaptchaGenerateResp {
+    string CaptchaId = 1;
+    string PicPath = 2;
+}
+
+message CaptchaCheckReq {
+    string CaptchaId = 1;
+    string Captcha = 2;
+}
+
+message CaptchaCheckResp {
+}
+
+message SmsSendReq {
+    string Type = 1;
+    string Phone = 2;
+}
+
+message SmsSendResp {
+    string Code = 1;
+}
+
+message SmsCheckReq {
+    string Type = 1;
+    string Phone = 2;
+    string Code = 3;
+}
+message SmsCheckResp {
+
+}
+
+message SmsRecordReq {
+    string Platform = 1; // 短信平台
+    int64 MemberID = 2;     // 用户ID
+    string Phone = 3;  // 手机号
+    string SmsType = 4; // 短信类型
+    string TmpID = 5;           // 模板ID
+    string TmpContent = 6;  // 模板信息
+}
+message SmsRecordResp {
+
+}
+
+message SensitiveWordCheckReq {
+    string Word = 1;
+}
+message SensitiveWordCheckResp {
+    bool Result = 1; //是否有敏感词
+    string Replace = 2;//替换后词语
+    string Filter = 3;//移除后词语
+}
+
+message SensitiveWordSearchReq {
+    string Search = 1;
+}
+message SensitiveWordSearchResp {
+    repeated string List = 1;
+}
+
+message SensitiveWordAddReq {
+    string Word = 1;
+}
+message SensitiveWordAddResp {}
+
+message SensitiveWordDelReq {
+    string Word = 1;
+}
+message SensitiveWordDelResp {}
+
+message SensitiveWordCacheReq {}
+message SensitiveWordCacheResp {
+    repeated string Words = 1;
+}
+
+service common {
+    //验证码
+    rpc CaptchaGenerate (CaptchaGenerateReq) returns (CaptchaGenerateResp);
+    //验证码校验
+    rpc CaptchaCheck (CaptchaCheckReq) returns (CaptchaCheckResp);
+
+    //短信发送
+    rpc SmsSend (SmsSendReq) returns (SmsSendResp);
+    //短信发送校验
+    rpc SmsCheck (SmsCheckReq) returns (SmsCheckResp);
+    //短信记录
+    rpc SmsRecord (SmsRecordReq) returns (SmsRecordResp);
+
+    //敏感词检测
+    rpc SensitiveWordCheck (SensitiveWordCheckReq) returns (SensitiveWordCheckResp);
+    //敏感词查询
+    rpc SensitiveWordSearch (SensitiveWordSearchReq) returns (SensitiveWordSearchResp);
+    //敏感词添加
+    rpc SensitiveWordAdd (SensitiveWordAddReq) returns (SensitiveWordAddResp);
+    //敏感词删除
+    rpc SensitiveWordDel (SensitiveWordDelReq) returns (SensitiveWordDelResp);
+    //敏感词缓存
+    rpc SensitiveWordCache (SensitiveWordCacheReq) returns (SensitiveWordCacheResp);
+}

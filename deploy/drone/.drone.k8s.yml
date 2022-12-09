@@ -1,0 +1,108 @@
+---
+kind: pipeline # 定义对象类型，有pipeline,secret和signature两种类型
+type: docker # 定义流水线类型，有docker,kubernetes、exec、ssh等类型
+name: fgzs # 定义流水线名称
+# drone执行触发器
+trigger:
+  branch: # 分支
+    - k8s
+  event: # 操作类型
+    - push
+steps: # 定义流水线执行步骤，这些步骤将顺序执行
+  - name: 代码检查 # 代码检查 静态分析
+    image: golang
+    pull: if-not-exists
+    volumes: # 将编译时将所需的依赖映射出来,避免下次构建时重新下载,当然如果你不需要,也可以把 volumes 删掉,大不了每次重新下载。请注意!!:挂载时需要在drone后台将 Trusted 勾上
+      - name: check
+        path: /go # 容器内的路径
+    environment:
+      GOPROXY: https://goproxy.cn,direct
+      CGO_ENABLED: 0
+      GO111MODULE: on
+      GOOS: linux
+      GOARCH: amd64
+    commands:
+      - ls -al
+      - git rev-parse --abbrev-ref HEAD
+      - git rev-parse --short HEAD
+      - go mod tidy
+      - 'if ! type $GOPATH/bin/golangci-lint >/dev/null 2>&1; then
+            curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin latest;
+         fi'
+      - $GOPATH/bin/golangci-lint run ./... --timeout=5m
+      - 'if ! type $GOPATH/bin/goctl >/dev/null 2>&1; then
+          go install github.com/zeromicro/go-zero/tools/goctl@latest;
+         fi'
+      - $GOPATH/bin/goctl -v
+      - cd app/service/identity/rpc/
+      - make k8s-yaml
+
+  - name: 代码分析
+    image: aosapps/drone-sonar-plugin
+    settings:
+      sonar_host:
+        from_secret: sonar_host
+      sonar_token:
+        from_secret: sonar_token #786961ea45d26892537fcaad962d62d9fc14d6d5
+
+  - name: 构建镜像:identity-rpc # 镜像构建并推送到仓库
+    image: plugins/docker
+    settings:
+      debug: true
+      use_cache: true
+      insecure: true
+      mirror: https://qgsrxeq5.mirror.aliyuncs.com
+      dockerfile: app/service/identity/rpc/Dockerfile
+      tags: ${DRONE_COMMIT}
+      repo: $HARBOR_HOST/$DRONE_REPO_NAME-DRONE_COMMIT_BRANCH/identity-rpc
+      registry:
+        from_secret: HARBOR_HOST
+      username:
+        from_secret: HARBOR_USER
+      password:
+        from_secret: HARBOR_PWD
+
+  - name: deploy
+    image: bh90210/dron8s:latest
+    settings:
+      yaml: app/service/identity/rpc/k8s.yaml
+      kubeconfig:
+        from_secret: kubeconfig
+
+# 将容器内挂载出来,和构建阶段的 volumes 承接
+volumes:
+  - name: check
+    host:
+      path: /www/cicd/drone/volumes/check # 宿主机的路径
+
+---
+## 以下是构建完成后发送通知的事件
+kind: pipeline
+type: docker
+name: notify
+clone:
+  disable: true
+steps:
+  - name: send
+    image: plugins/webhook
+    settings:
+      method: POST
+      urls: https://open.feishu.cn/open-apis/bot/v2/hook/610f45da-a7a3-4a30-9c64-a6198c00fcd5 # 请将 url 自行修改成你自己的
+      content_type: application/json
+      template: |
+        {
+          "msg_type": "text",
+          "content": {
+            "text": "项目:${DRONE_REPO_NAME}\n版本:${DRONE_BUILD_NUMBER}\n分支:${DRONE_COMMIT_BRANCH}\n状态:{{build.status}}"
+          }
+        }
+trigger:
+  branch: # 分支
+    - k8s
+  event: # 操作类型
+    - push
+  status:
+    - success
+    - failure
+
+depends_on: [ fgzs ]

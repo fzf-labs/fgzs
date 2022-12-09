@@ -1,0 +1,142 @@
+---
+kind: pipeline # 定义对象类型，有pipeline,secret和signature两种类型
+type: docker # 定义流水线类型，有docker,kubernetes、exec、ssh等类型
+name: fgzs # 定义流水线名称
+
+clone:
+  disable: true  # 代码禁止拉取
+
+# drone执行触发器
+trigger:
+  branch: # 分支
+    - test
+    - pro
+  event: # 操作类型
+    - push
+steps: # 定义流水线执行步骤，这些步骤将顺序执行
+  - name: 部署-测试
+    image: appleboy/drone-ssh # SSH工具镜像
+    when:
+      branch:
+        - test
+    volumes: # 将编译时将所需的依赖映射出来,避免下次构建时重新下载,当然如果你不需要,也可以把 volumes 删掉,大不了每次重新下载。请注意!!:挂载时需要在drone后台将 Trusted 勾上
+      - name: deploy
+        path: /go # 容器内的路径
+    settings:
+      host: # 远程连接地址
+        from_secret: ssh_host_test
+      username: # 远程连接账号
+        from_secret: ssh_user_test
+      key: ## 远程连接密码
+        from_secret: ssh_key_test
+      port: 22 # 远程连接端口
+      command_timeout: 5m # 远程执行命令超时时间
+      script:
+        - echo "代码拉取-开始"
+        - cd /www/fgzs # 进入宿主机构建目录
+        - git checkout test
+        - git pull origin test
+        - git rev-parse --abbrev-ref HEAD
+        - git rev-parse --short HEAD
+        - echo "代码拉取-结束"
+        - echo "配置展示-开始"
+        - ls -al
+        - go env
+        - echo "配置展示-结束"
+        - echo "go mod -开始"
+        - go mod download
+        - go mod tidy
+        - echo "go mod-结束"
+        - echo "代码静态检查-开始"
+        - echo $GOPATH
+        - $GOPATH/bin/golangci-lint run ./... --timeout=5m
+        - echo "代码静态检查-结束"
+        - echo "代码编译-开始"
+        - make build
+        - echo "代码编译-结束"
+        - echo "代码执行-开始"
+        - make run
+        - echo "代码执行-结束"
+
+  - name: 部署-正式
+    image: appleboy/drone-ssh # SSH工具镜像
+    when:
+      branch:
+        - pro
+    volumes: # 将编译时将所需的依赖映射出来,避免下次构建时重新下载,当然如果你不需要,也可以把 volumes 删掉,大不了每次重新下载。请注意!!:挂载时需要在drone后台将 Trusted 勾上
+      - name: deploy
+        path: /go # 容器内的路径
+    settings:
+      host: # 远程连接地址
+        from_secret: ssh_host_pro
+      username: # 远程连接账号
+        from_secret: ssh_user_pro
+      key: ## 远程连接密码
+        from_secret: ssh_key_pro
+      port: 22 # 远程连接端口
+      command_timeout: 5m # 远程执行命令超时时间
+      script:
+        - echo "代码拉取-开始"
+        - cd /www/fgzs # 进入宿主机构建目录
+        - git checkout pro
+        - git pull origin pro
+        - git rev-parse --abbrev-ref HEAD
+        - git rev-parse --short HEAD
+        - echo "代码拉取-结束"
+        - echo "配置展示-开始"
+        - ls -al
+        - go env
+        - echo "配置展示-结束"
+        - echo "go mod -开始"
+        - go mod download
+        - go mod tidy
+        - echo "go mod-结束"
+        - echo "代码静态检查-开始"
+        - echo $GOPATH
+        - $GOPATH/bin/golangci-lint run ./... --timeout=5m
+        - echo "代码静态检查-结束"
+        - echo "代码编译-开始"
+        - make build
+        - echo "代码编译-结束"
+        - echo "代码执行-开始"
+        - make run
+        - echo "代码执行-结束"
+
+# 将容器内挂载出来,和构建阶段的 volumes 承接
+volumes:
+  - name: deploy
+    host:
+      path: /www/cicd/drone/volumes/deploy # 宿主机的路径
+
+---
+## 以下是构建完成后发送通知的事件
+kind: pipeline
+type: docker
+name: notify
+clone:
+  disable: true
+steps:
+  - name: 通知
+    image: plugins/webhook
+    settings:
+      method: POST
+      urls: https://open.feishu.cn/open-apis/bot/v2/hook/610f45da-a7a3-4a30-9c64-a6198c00fcd5 # 请将 url 自行修改成你自己的
+      content_type: application/json
+      template: |
+        {
+          "msg_type": "text",
+          "content": {
+            "text": "项目:${DRONE_REPO_NAME}\n版本:${DRONE_BUILD_NUMBER}\n分支:${DRONE_COMMIT_BRANCH}\n状态:{{build.status}}"
+          }
+        }
+trigger:
+  branch: # 分支
+    - test
+    - pro
+  event: # 操作类型
+    - push
+  status:
+    - success
+    - failure
+
+depends_on: [ fgzs ]

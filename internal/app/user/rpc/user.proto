@@ -1,0 +1,115 @@
+syntax = "proto3";
+
+package userpb;
+
+option go_package = "./userpb";
+import "validate/validate.proto";
+
+message Token {
+  string Token = 1;
+  int64 ExpiredAt = 2;
+  int64 RefreshAt = 3;
+}
+
+message UserRegisterReq{
+  string Username = 1 [(validate.rules).string = {min_len: 6, max_len: 32}];
+  string Password = 2 [(validate.rules).string = {min_len: 6, max_len: 32}];
+  string ConfirmPassword = 3 [(validate.rules).string = {min_len: 6, max_len: 32}];
+}
+message UserRegisterResp{
+
+}
+
+message UserUsernameLoginReq{
+  string Username = 1 [(validate.rules).string = {min_len: 6, max_len: 32}];
+  string Password = 2 [(validate.rules).string = {min_len: 6, max_len: 32}];
+}
+message UserUsernameLoginResp{
+  Token Token = 1;
+  string UID = 2; // 用户ID
+}
+
+message UserSmsSendReq {
+  string Phone = 1;
+}
+
+message UserSmsSendResp {
+}
+
+message UserOneClickLoginReq {
+  string LoginToken = 1;
+  string Platform = 2;
+}
+
+message UserOneClickLoginResp {
+  Token Token = 1;
+  string UID = 2; // 用户ID
+}
+
+
+
+message UserSmsLoginReq {
+  string Phone = 2;
+  string Code = 3;
+}
+
+message UserSmsLoginResp {
+  Token Token = 1;
+  string UID = 2; // 用户ID
+}
+
+message UserWechatAppLoginReq {
+  string WechatCode = 2;
+}
+
+message UserWechatAppLoginResp {
+  Token Token = 1;
+  string UID = 2; // 用户ID
+}
+
+message UserQQAppLoginReq {
+  string QQCode = 2;
+}
+
+message UserQQAppLoginResp {
+  Token Token = 1;
+  string UID = 2; // 用户ID
+}
+
+message UserAppleLoginReq {
+  string AppleCode = 2;
+  string NickName = 3;
+}
+
+message UserAppleLoginResp {
+  Token Token = 1;
+  string UID = 2; // 用户ID
+}
+
+message UserLoginOutReq {
+  int64 UID = 1;
+}
+
+message UserLoginOutResp {
+
+}
+
+
+service user {
+  //用户注册
+  rpc UserRegister(UserRegisterReq) returns (UserRegisterResp) {}
+  //用户登录-用户名密码
+  rpc UserUsernameLogin(UserUsernameLoginReq) returns (UserUsernameLoginResp) {}
+  //用户登录-短信发送
+  rpc UserSmsSend (UserSmsSendReq) returns (UserSmsSendResp);
+  //用户登录-短信登录
+  rpc UserSmsLogin (UserSmsLoginReq) returns (UserSmsLoginResp);
+  //用户登录-微信登录
+  rpc UserWechatAppLogin (UserWechatAppLoginReq) returns (UserWechatAppLoginResp);
+  //用户登录-qq登录
+  rpc UserQQAppLogin (UserQQAppLoginReq) returns (UserQQAppLoginResp);
+  //用户登录-苹果登录
+  rpc UserAppleLogin (UserAppleLoginReq) returns (UserAppleLoginResp);
+  //用户登出
+  rpc UserLoginOut (UserLoginOutReq) returns (UserLoginOutResp);
+}

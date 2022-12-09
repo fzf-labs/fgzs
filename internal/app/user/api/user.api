@@ -1,0 +1,28 @@
+syntax = "v1"
+
+info(
+	title: "用户API"
+	desc: ""
+	author: ""
+	email: ""
+	version: ""
+)
+
+type UserLoginReq {
+	UserName string `json:"userName"`
+	PassWord string `json:"passWord"`
+}
+
+type UserLoginResp {
+}
+
+@server(
+	group: auth
+)
+service user {
+	@doc(
+		summary: "用户-登录"
+	)
+	@handler UserLogin //用户-登录
+	post /users/login (UserLoginReq) returns (UserLoginResp)
+}

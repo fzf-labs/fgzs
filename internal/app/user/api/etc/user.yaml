@@ -1,0 +1,27 @@
+Name: user
+Host: 0.0.0.0
+Port: 30003
+
+#监控
+Prometheus:
+  Host: 0.0.0.0
+  Port: 30503
+  Path: /metrics
+
+#性能监控
+Pyroscope:
+  ApplicationName: user.api
+  Addr: http://pyroscope:4040
+  AuthToken:
+
+#链路追踪
+Telemetry:
+  Name: user.api
+  Endpoint: http://jaeger:14268/api/traces
+  Sampler: 1.0
+  Batcher: jaeger
+
+#日志
+Log:
+  ServiceName: user.api
+  Level: info

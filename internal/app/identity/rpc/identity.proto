@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package identitypb;
+
+option go_package = "./identitypb";
+
+message Token {
+  string Token = 1;
+  int64 ExpiredAt = 2;
+  int64 RefreshAt = 3;
+}
+message GenerateTokenReq {
+  string Target = 1;
+  string Uid = 2;
+  map<string, string> Payloads = 3;
+}
+
+message GenerateTokenResp {
+  Token Token = 2;
+}
+
+message ClearTokenReq {
+  string Target = 1;
+  string Uid = 2;
+}
+message ClearTokenResp {
+
+}
+
+
+message ValidateTokenReq {
+  string Target = 1;
+  string Token = 2;
+}
+
+message ValidateTokenResp {
+  string Uid = 1;
+  map<string, string> Payloads = 2;
+  Token Token = 3;
+}
+
+service identity {
+  // 生成token
+  rpc GenerateToken (GenerateTokenReq) returns (GenerateTokenResp);
+  // 验证token
+  rpc ValidateToken (ValidateTokenReq) returns (ValidateTokenResp);
+  // 清除token
+  rpc ClearToken (ClearTokenReq) returns (ClearTokenResp);
+}

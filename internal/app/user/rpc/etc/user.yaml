@@ -1,0 +1,87 @@
+Name: user.rpc
+ListenOn: 127.0.0.1:31003
+
+Mode: dev
+
+#监控
+Prometheus:
+  Host: 0.0.0.0
+  Port: 31503
+  Path: /metrics
+
+#性能监控
+Pyroscope:
+  ApplicationName: user.rpc
+  Addr: http://pyroscope:4040
+  AuthToken:
+
+#链路追踪
+Telemetry:
+  Name: user.rpc
+  Endpoint: http://jaeger:14268/api/traces
+  Sampler: 1.0
+  Batcher: jaeger
+
+#日志
+Log:
+  ServiceName: user.rpc
+  Level: info
+
+#数据库
+Mysql:
+  DataSourceName: root:123456@tcp(127.0.0.1:3306)/fgzs_user?charset=utf8mb4&loc=Asia%2FShanghai&parseTime=true
+
+#缓存
+Cache:
+  - Host: 127.0.0.1:6379
+    Pass: "123456"
+
+#Redis
+Redis:
+  Host: 127.0.0.1:6379
+  Pass: "123456"
+
+#身份验证服务
+IdentityRpc:
+  Endpoints:
+    - 127.0.0.1:31002
+  NonBlock: true
+
+#微信公众号配置
+WechatOfficialAccount:
+  AppId: ""
+  AppSecret: ""
+
+#qq登录配置
+QQConfig:
+  ClientId: ""
+  ClientSecret: ""
+  RedirectUrl:
+  ApplyUnionId: "0" #申请unionId，0：不申请，1：申请
+
+#苹果登录配置
+SignInWithApple:
+  Secret: ""
+  KeyId: ""
+  TeamId: ""
+  ClientId: ""
+  RedirectUrl:
+
+#极光一键登录配置
+Jverification:
+  IOS:
+    AppKey: ""
+    MasterSecret: ""
+    RsaPem: ""
+    Debug: false                       # true 为测试   正式环境改为false
+  Android:
+    AppKey: ""
+    MasterSecret: ""
+    RsaPem: ""
+    Debug: false                        # true 为测试   正式环境改为false
+
+#通用服务
+CommonRpc:
+  Endpoints:
+    - 127.0.0.1:31001
+  NonBlock: true

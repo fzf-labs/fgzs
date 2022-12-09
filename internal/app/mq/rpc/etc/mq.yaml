@@ -1,0 +1,41 @@
+Name: mq.rpc
+ListenOn: 0.0.0.0:31003
+Mode: dev
+
+#监控
+Prometheus:
+  Host: 0.0.0.0
+  Port: 31503
+  Path: /metrics
+
+#性能监控
+Pyroscope:
+  ApplicationName: mq.rpc
+  Addr: http://pyroscope:4040
+  AuthToken:
+
+#链路追踪
+Telemetry:
+  Name: mq.rpc
+  Endpoint: http://jaeger:14268/api/traces
+  Sampler: 1.0
+  Batcher: jaeger
+
+#日志
+Log:
+  ServiceName: mq.rpc
+  Level: info
+
+#mq 配置
+MqConfig:
+  Switch: true
+  Use: "Asynq"
+  AsynqConfig:
+    Addr: 127.0.0.1:6379              # 地址
+    Password: "123456"                # 密码
+
+#用户服务
+UserRpc:
+  Endpoints:
+    - 127.0.0.1:31004
+  NonBlock: true

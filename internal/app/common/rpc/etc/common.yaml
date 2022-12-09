@@ -1,0 +1,52 @@
+Name: common.rpc
+ListenOn: 0.0.0.0:31001
+Mode: dev
+
+#超时时间
+Timeout: 5000
+
+#监控
+Prometheus:
+  Host: 0.0.0.0
+  Port: 31501
+  Path: /metrics
+
+#性能监控
+Pyroscope:
+  ApplicationName: common.rpc
+  Addr: http://pyroscope:4040
+  AuthToken:
+
+#链路追踪
+Telemetry:
+  Name: common.rpc
+  Endpoint: http://jaeger:14268/api/traces
+  Sampler: 1.0
+  Batcher: jaeger
+
+#日志
+Log:
+  ServiceName: common.rpc
+  Level: info
+
+#mysql
+Mysql:
+  DataSourceName: root:123456@tcp(127.0.0.1:3306)/fgzs_common?charset=utf8mb4&loc=Asia%2FShanghai&parseTime=true
+
+#缓存
+Cache:
+  - Host: 127.0.0.1:6379
+    Pass: "123456"
+
+#Redis
+Redis:
+  Host: 127.0.0.1:6379
+  Pass: "123456"
+
+#极光短信
+Jsms:
+  AppKey: ""
+  MasterSecret: ""
+  TempId: "197974"
+  SendLimit: 5
+  Debug: true                       # true 为测试   正式环境改为false
